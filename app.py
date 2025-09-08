@@ -12,7 +12,6 @@ Original file is located at
 # ==============================================================================
 print("Iniciando Módulo 1...")
 # Instalação da biblioteca
-!pip install pyworkforce -q
 import pandas as pd
 from pyworkforce.queuing import ErlangC
 print("Bibliotecas importadas.")
