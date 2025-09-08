@@ -176,7 +176,7 @@ print("Você pode baixá-lo no menu 'Arquivos' (ícone de pasta) à esquerda.")
 print("\nMódulo 5 concluído. PROCESSO FINALIZADO COM SUCESSO!")
 
 # CÓDIGO DE DIAGNÓSTICO - VERSÃO CORRIGIDA
-!pip install pyworkforce -q
+
 from pyworkforce.queuing import ErlangC
 
 # CORREÇÃO: Adicionamos o argumento obrigatório 'asa'
@@ -200,7 +200,7 @@ import sys
 try:
     # --- MÓDULO 1: CONFIGURAÇÃO E CARREGAMENTO ---
     print("MÓDULO 1: Iniciando configuração e carregamento...")
-    !pip install pyworkforce -q
+   
     from pyworkforce.queuing import ErlangC
 
     try:
@@ -321,7 +321,7 @@ import sys
 try:
     # --- MÓDULO 1: CONFIGURAÇÃO E CARREGAMENTO ---
     print("MÓDULO 1: Iniciando configuração e carregamento...")
-    !pip install pyworkforce -q
+   
     from pyworkforce.queuing import ErlangC
 
     try:
