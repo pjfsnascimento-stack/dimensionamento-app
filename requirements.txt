@@ -1,5 +1,0 @@
-streamlit
-pandas
-pyworkforce
-matplotlib
-seaborn
