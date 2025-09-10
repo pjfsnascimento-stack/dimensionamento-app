@@ -1,13 +1,12 @@
 # ==============================================================================
-# PLATAFORMA DE WORKFORCE MANAGEMENT (WFM) - VERSÃO 16.1 (ESTÁVEL)
-# Corrige o NameError crítico relacionado à falta da importação do módulo 'math'.
-# Restaura a funcionalidade completa de todas as abas e relatórios.
+# PLATAFORMA DE WORKFORCE MANAGEMENT (WFM) - VERSÃO 15.2 (ESTÁVEL)
+# Corrige o KeyError na Análise de Custos e o NameError no gráfico de previsão da IA.
 # ==============================================================================
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 import numpy as np
-import math # <-- CORREÇÃO CRÍTICA: Importa a biblioteca 'math' que estava faltando.
+import math
 
 # Importa as funções dos módulos da pasta src
 from src.utils import to_excel, process_uploaded_file
@@ -15,7 +14,7 @@ from src.calculations import calculate_demand, calculate_required_staff
 from src.ai_model import prepare_data_for_prophet, train_prophet_model, generate_forecast, generate_ai_staffing_schedule, generate_ai_report
 from src.financial import generate_cost_ai_report
 from src.plotting import plot_volume_vs_tma, plot_agent_performance, plot_demand_by_client, plot_staffing_heatmap, plot_pareto_chart
-from prophet.plot import plot_components_plotly
+# CORREÇÃO: A importação desnecessária foi removida. O método correto é chamado diretamente do modelo.
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(page_title="WFM Pro AI - Plataforma de BI", page_icon="👑", layout="wide")
@@ -44,6 +43,7 @@ with st.container(border=True):
                 except Exception as e:
                     st.error(f"Erro ao processar o arquivo: {e}")
                     st.session_state.processed_data = None
+
 
 if st.session_state.processed_data is not None:
     df = st.session_state.processed_data
@@ -87,9 +87,12 @@ if st.session_state.processed_data is not None:
                 model = train_prophet_model(df_prophet)
                 forecast = generate_forecast(model, start_date, end_date)
                 final_schedule = generate_ai_staffing_schedule(forecast, demand_df_filtered, meta_sl, meta_tempo, shrinkage)
-                ai_report = generate_ai_report(forecast, demand_df_filtered)
+                ai_report = generate_ai_report(forecast)
                 st.subheader("Relatório Executivo da IA"); st.markdown(ai_report)
-                st.subheader("Análise dos Componentes da Previsão"); st.plotly_chart(plot_components_plotly(model, forecast), use_container_width=True)
+                st.subheader("Análise dos Componentes da Previsão")
+                # CORREÇÃO CRÍTICA: Usa o método de plotagem correto do objeto do modelo e exibe com st.pyplot
+                fig_components = model.plot_components(forecast)
+                st.pyplot(fig_components)
                 st.subheader("Escala Detalhada Recomendada pela IA"); st.dataframe(final_schedule[['ds', 'Dia da Semana', 'Hora', 'chamadas_previstas', 'tma_medio', 'Escala Prevista com IA']].rename(columns={'ds': 'Data'}), hide_index=True)
                 st.download_button("📥 Exportar Relatório e Escala da IA", to_excel({'Relatorio_IA': ai_report, 'Escala_Prevista_IA': final_schedule}), "previsao_escala_ia.xlsx")
     
@@ -104,8 +107,11 @@ if st.session_state.processed_data is not None:
             horas_produtivas_mes = 176
             cost_per_hour = total_payroll / (total_agents * horas_produtivas_mes) if total_agents > 0 else 0
             cost_per_second = cost_per_hour / 3600
+            # Use a copy to avoid SettingWithCopyWarning
+            df_filtered = df_filtered.copy()
             df_filtered['custo_atendimento'] = df_filtered['duracao_atendimento'] * cost_per_second
             
+            # CORREÇÃO: Padroniza os nomes das colunas após a agregação
             cost_by_condo = df_filtered.groupby('Condomínio').agg(Custo_Total_Rs=('custo_atendimento', 'sum')).sort_values('Custo_Total_Rs', ascending=False).reset_index().rename(columns={'Custo_Total_Rs': 'Custo Total (R$)'})
             cost_by_condo['Percentual do Custo (%)'] = (cost_by_condo['Custo Total (R$)'] / cost_by_condo['Custo Total (R$)'].sum()) * 100
             cost_by_agent = df_filtered.groupby('Atendente').agg(Valor_Atendido_Rs=('custo_atendimento', 'sum')).sort_values('Valor_Atendido_Rs', ascending=False).reset_index().rename(columns={'Valor_Atendido_Rs': 'Valor Atendido (R$)'})
