@@ -1,0 +1,8 @@
+streamlit
+pandas
+pyworkforce
+matplotlib
+seaborn
+plotly
+chardet
+prophet
