@@ -1,11 +1,12 @@
 # ==============================================================================
-# PLATAFORMA DE WORKFORCE MANAGEMENT (WFM) - VERSÃO 16.0 (MODULAR)
-# Interface principal que orquestra as chamadas para os módulos de backend.
+# PLATAFORMA DE WORKFORCE MANAGEMENT (WFM) - VERSÃO 16.1 (ESTÁVEL)
+# Corrige o NameError crítico relacionado à falta da importação do módulo 'math'.
 # ==============================================================================
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 import numpy as np
+import math # <-- CORREÇÃO: Importa a biblioteca 'math' que estava faltando.
 
 # Importa as funções dos módulos da pasta src
 from src.utils import to_excel, process_uploaded_file
@@ -36,7 +37,13 @@ with st.container(border=True):
             st.subheader("Mapeamento de Colunas"); map_cols = st.columns(4)
             column_mapping = {'data_hora_inicio': map_cols[0].selectbox("Data/Hora (*)", header_df.columns),'duracao_atendimento': map_cols[1].selectbox("Duração (s) (*)", header_df.columns), 'Condomínio': map_cols[2].selectbox("Fila/Cliente", [None] + list(header_df.columns)),'Atendente': map_cols[3].selectbox("Atendente", [None] + list(header_df.columns)),}
             if st.button("📊 Processar e Analisar Dados", use_container_width=True, type="primary"):
-                st.session_state.processed_data, st.session_state.info_message = process_uploaded_file(uploaded_history, column_mapping); st.success(st.session_state.info_message)
+                try:
+                    st.session_state.processed_data, st.session_state.info_message = process_uploaded_file(uploaded_history, column_mapping)
+                    st.success(st.session_state.info_message)
+                except Exception as e:
+                    st.error(f"Erro ao processar o arquivo: {e}")
+                    st.session_state.processed_data = None
+
 
 if st.session_state.processed_data is not None:
     df = st.session_state.processed_data
